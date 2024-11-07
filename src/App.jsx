@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import HomePage from './components/HomePage'
 import Header from './components/Header'
 import FileDisplay from './components/FileDisplay'
@@ -59,7 +59,7 @@ const App = () => {
    const handleSubmitForm = async (e) => {
       if (!file && !audioStream) return
       let audio = await readAudioFrom(file ? file : audioStream)
-      const model_name = `openai/whisper-tiny.en`
+      const model_name = `openai/whisper-tiny`
 
       worker.current.postMessage({
          type: MessageTypes.INFERENCE_REQUEST,
@@ -76,7 +76,7 @@ const App = () => {
    const worker = useRef(null)
    return (
       <>
-         <div className='flex flex-col  max-w-[1000px] mx-auto w-full'>
+         <div className='flex flex-col max-w-[1000px] mx-auto w-full'>
             <section className='min-h-screen flex flex-col'>
                <Header />
                {output ? (

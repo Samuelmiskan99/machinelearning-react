@@ -1,16 +1,35 @@
 import { pipeline } from '@xenova/transformers'
-import { MessageTypes } from './preset'
+import { MessageTypes, LoadingStatus, ModelNames } from './preset'
 
 class MyTranscriptionPipeline {
    static task = 'automatic-speech-recognition'
-   static model = 'Xenova/whisper-tiny.en'
+   static model = ModelNames.WHISPER_TINY_EN // Use model name from constants
    static instance = null
 
    static async getInstance(progress_callback = null) {
       if (this.instance === null) {
-         this.instance = await pipeline(this.task, null, { progress_callback })
+         try {
+            console.log('Attempting to load model:', this.model)
+            // Load the pipeline asynchronously
+            this.instance = await pipeline(this.task, this.model, { progress_callback })
+            console.log('Model loaded successfully:', this.model)
+         } catch (err) {
+            console.error('Error loading model:', err.message)
+            if (err.message.includes("Unexpected token '<'")) {
+               console.error(
+                  'Model loading returned HTML instead of JSON. This might indicate a 404 error or a network issue.'
+               )
+               console.error(
+                  'Check the model path and ensure it is accessible. Model name:',
+                  this.model
+               )
+            } else {
+               console.error('Other error encountered:', err)
+            }
+            sendLoadingMessage(LoadingStatus.ERROR) // Notify error status
+            return null
+         }
       }
-
       return this.instance
    }
 }
@@ -23,17 +42,19 @@ self.addEventListener('message', async (event) => {
 })
 
 async function transcribe(audio) {
-   sendLoadingMessage('loading')
+   sendLoadingMessage(LoadingStatus.LOADING)
 
-   let pipeline
+   const pipeline = await MyTranscriptionPipeline.getInstance(load_model_callback)
 
-   try {
-      pipeline = await MyTranscriptionPipeline.getInstance(load_model_callback)
-   } catch (err) {
-      console.log(err.message)
+   // Check if pipeline was successfully loaded
+   if (!pipeline) {
+      console.error('Pipeline failed to load')
+      sendLoadingMessage(LoadingStatus.ERROR)
+      return
    }
 
-   sendLoadingMessage('success')
+   // Proceed with transcribing if pipeline is valid
+   sendLoadingMessage(LoadingStatus.SUCCESS)
 
    const stride_length_s = 5
 
@@ -80,9 +101,17 @@ class GenerationTracker {
       this.pipeline = pipeline
       this.stride_length_s = stride_length_s
       this.chunks = []
-      this.time_precision =
-         pipeline?.processor.feature_extractor.config.chunk_length /
-         pipeline.model.config.max_source_positions
+
+      // Check if pipeline and model configuration are defined
+      if (!pipeline || !pipeline.model || !pipeline.model.config) {
+         console.error('Pipeline or model configuration is missing')
+         this.time_precision = 0 // Set default value to avoid undefined errors
+      } else {
+         this.time_precision =
+            pipeline.processor.feature_extractor.config.chunk_length /
+            pipeline.model.config.max_source_positions
+      }
+
       this.processed_chunks = []
       this.callbackFunctionCounter = 0
    }
@@ -113,6 +142,11 @@ class GenerationTracker {
 
    chunkCallback(data) {
       this.chunks.push(data)
+      if (!this.pipeline || !this.pipeline.tokenizer || !this.pipeline.tokenizer._decode_asr) {
+         console.error('Tokenizer or decode function is missing')
+         return
+      }
+
       const [text, { chunks }] = this.pipeline.tokenizer._decode_asr(this.chunks, {
          time_precision: this.time_precision,
          return_timestamps: true,
@@ -130,6 +164,7 @@ class GenerationTracker {
       if (this.processed_chunks.length === 0) {
          return 0
       }
+      return this.processed_chunks[this.processed_chunks.length - 1].end
    }
 
    processChunk(chunk, index) {
