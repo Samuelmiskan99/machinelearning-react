@@ -13,7 +13,7 @@ const HomePage = (props) => {
    const [isDropdownOpen, setIsDropdownOpen] = useState(false) // State untuk mengontrol dropdown
 
    const mediaRecorder = useRef(null)
-   const mimeType = 'audio/ogg; codecs=opus'
+   const mimeType = 'audio/webm'
 
    // Fungsi untuk memulai perekaman
    const startRecording = async () => {
@@ -33,7 +33,6 @@ const HomePage = (props) => {
          return
       }
       setRecordingStatus('recording')
-      setDuration(0)
 
       const media = new MediaRecorder(tempStream, { mimeType })
       mediaRecorder.current = media
@@ -95,7 +94,7 @@ const HomePage = (props) => {
    }, [])
 
    return (
-      <main className='relative flex-1 p-4 flex flex-col justify-center gap-3 text-center sm:gap-4 md:gap-5 pb-20'>
+      <main className='relative flex-1 p-4 flex flex-col justify-center gap-3 text-center sm:gap-4 '>
          <h1 className='font-semibold text-5xl sm:text-6xl md:text-7xl'>
             Free<span className='text-red-400 bold '>Scribe</span>
          </h1>
