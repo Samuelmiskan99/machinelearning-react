@@ -1,7 +1,7 @@
 import { FaPenNib } from 'react-icons/fa'
 
 const FileDisplay = (props) => {
-   const { file, audioStream, handleResetAudio } = props
+   const { file, audioStream, handleResetAudio, handleSubmitForm } = props
    return (
       <>
          <main className='flex-1  p-4 flex flex-col justify-center gap-3 text-center sm:gap-4  pb-20 w-71 max-w-full mx-auto sm:w-96'>
@@ -20,7 +20,9 @@ const FileDisplay = (props) => {
                   Reset
                </button>
 
-               <button className='specialBtn font-semibold p-2 rounded-lg text-red-400 flex items-center gap-2 text-base px-3'>
+               <button
+                  onClick={handleSubmitForm}
+                  className='specialBtn font-semibold p-2 rounded-lg text-red-400 flex items-center gap-2 text-base px-3'>
                   <p>Transcribe</p>
                   <FaPenNib />
                </button>

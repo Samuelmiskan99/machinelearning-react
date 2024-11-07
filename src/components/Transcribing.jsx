@@ -8,7 +8,7 @@ const Transcribing = (props) => {
             </h1>
             <p>{!downloading ? 'Please wait...' : 'Downloading...'}</p>
          </div>
-         <div className='flex flex-col gap-2 sm:gap-4 max-w-[500px] mx-auto w-full'>
+         <div className='flex flex-col gap-2 sm:gap-3 max-w-[500px] mx-auto w-full'>
             {[0, 1, 2].map((val) => {
                return (
                   <div

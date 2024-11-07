@@ -47,13 +47,12 @@ const App = () => {
       }
    }, [])
 
-   const readAudioFrom = async () => {
+   async function readAudioFrom(file) {
       const sampling_rate = 16000
-      const audioCTX = new AudioContext({ sampleRate: sampling_rate }) // 16 kHz
-
+      const audioCTX = new AudioContext({ sampleRate: sampling_rate })
       const response = await file.arrayBuffer()
-      const audioBuffer = await audioCTX.decodeAudioData(response)
-      const audio = audioBuffer.getChannelData(0)
+      const decoded = await audioCTX.decodeAudioData(response)
+      const audio = decoded.getChannelData(0)
       return audio
    }
 
@@ -86,6 +85,7 @@ const App = () => {
                   <Transcribing />
                ) : isAudioAvailable ? (
                   <FileDisplay
+                     handleSubmitForm={handleSubmitForm}
                      file={file}
                      audioStream={setAudioStream}
                      handleResetAudio={handleResetAudio}
